@@ -4,7 +4,7 @@
             [full.core.dev :refer [start-nstracker]]
             [full.http.server :as serv]
             [full.http.client :refer [req> raw-json-response-parser]]
-            [full.async :refer [<?]])
+            [full.async :refer [go-try <?]])
   (:gen-class))
 
 (def port (opt :port :default 8080))
@@ -17,6 +17,24 @@
 (defn save-req [request response]
   (dosync (ref-set requests (conj @requests {:request request
                                              :response response}))))
+
+(defonce request-mutations (ref #{}))
+
+(defn add-request-mutation
+  [matcher mutation]
+  (dosync (ref-set request-mutations (conj @request-mutations
+                                           {:matcher matcher
+                                            :mutation mutation}))))
+
+(defn remove-request-mutation
+  [matcher mutation]
+  (dosync (ref-set request-mutations (disj @request-mutations
+                                           {:matcher matcher
+                                            :mutation mutation}))))
+(defn match-and-mutate
+  [request]
+  (some #(when ((:matcher %) request) (:mutation %)) @request-mutations))
+
 (defn forward-request>
   [request]
   (go-try
@@ -33,7 +51,9 @@
 (serv/defroutes app-routes
   (serv/ANY
    "*" request
-   (<? (forward-request> request))))
+   (if-let [mutation> (match-and-mutate request)]
+     (<? (mutation> request))
+     (<? (forward-request> request)))))
 
 (defn -main [& _]
   (config/configure)
