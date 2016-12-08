@@ -2,3 +2,5 @@ log-config: log.xml
 port: 8984
 
 base-url: https://api.your.domain
+
+mutation-percentage: 10
