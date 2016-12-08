@@ -10,7 +10,30 @@
 (def port (opt :port :default 8080))
 (def request-logger (org.slf4j.LoggerFactory/getLogger "proxinius.request"))
 
-(serv/defroutes app-routes)
+(def base-url (opt :base-url))
+
+(defonce requests (ref #{}))
+
+(defn save-req [request response]
+  (dosync (ref-set requests (conj @requests {:request request
+                                             :response response}))))
+(defn forward-request>
+  [request]
+  (go-try
+   (let [response (<? (req> {:base-url @base-url
+                             :resource (subs (:uri request) 1)
+                             :method (:request-method request)
+                             :params (dissoc (:params request) :*)
+                             :body (:body request)
+                             :headers (dissoc (:headers request) "host")
+                             :response-parser raw-json-response-parser}))]
+     (save-req request response)
+     {:body response})))
+
+(serv/defroutes app-routes
+  (serv/ANY
+   "*" request
+   (<? (forward-request> request))))
 
 (defn -main [& _]
   (config/configure)
