@@ -1,9 +1,9 @@
 (ns proxinius.mutations)
 
-(defn internal-server-error [_ &_]
+(defn internal-server-error [& _]
   {:status 500})
 
-(defn empty-body [_ &_]
+(defn empty-body [& _]
   {:status 200
    :body {}})
 
