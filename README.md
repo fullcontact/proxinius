@@ -38,6 +38,17 @@ An example to match a specific request goes like this in the repl:
 ```
 The example above will return a 500 for all requests to `/v1/users`.
 
+You can also use `user/add-route-mutation` to match requests
+using [clout](https://github.com/weavejester/clout) routing
+pattern. For example:
+
+```clojure
+(add-route-mutation "/v1/users/:user-id" do-random-mutation>)
+```
+
+will match all requests that conform to `"/v1/users/:user-id"`, and
+apply random mutation.
+
 **NB!** matcher-mutation pairs are saved in a set, so a single request
 may not trigger one matcher but fall through to another. proxinius
 registers the random matcher right now on start-up. If not disabled
