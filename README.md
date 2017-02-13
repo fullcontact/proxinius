@@ -12,7 +12,8 @@ chaos testing.
 - Start proxinius - `(api/-main)`
 - Proxinius is now running on port `8984`. You should change the
   request base in your app to IP of the device proxinius is running
-  on.
+  on. This usually looks something like `192.168.1.16:8984` (the IP address can be
+  found using `ifconfig` or `ip addr` on more modern Linux distros)
 - You have achieved chaos! By default proxinius randomly mutates 10%
   of requests passing through it. You can change this in dev.yaml
 
